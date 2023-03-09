@@ -1,0 +1,22 @@
+{
+  "number":1,
+  "difficulty":1,
+  "span":3,
+  "nonce":817284,
+  "previous":"000015783b764259d382017d91a36d206d0600e2cbb3567748f46a33fe9297cf",
+  "reward":0.22,
+  "mined":100,
+  "size":100.25,
+  "time":"2023-02-04",
+  "transactions":35,
+  "data":[
+    {
+      "id":1,
+      "from":{"ahsdg":245},
+      "to":{"gghjas":33,"ahsgd":211},
+      "value":245,
+      "fee":1,
+      "time":"2023-02-03"
+    }
+  ]
+}
