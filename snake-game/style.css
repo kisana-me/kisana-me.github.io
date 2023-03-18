@@ -1,0 +1,36 @@
+canvas {
+  border: 1px solid #000;
+}
+.control-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.control-container button {
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
+}
+
+#up-btn {
+  border-radius: 25px 25px 0 0;
+}
+
+#down-btn {
+  border-radius: 0 0 25px 25px;
+}
+
+div > button {
+  border-radius: 0;
+}
+
+#left-btn {
+  border-radius: 25px 0 0 25px;
+}
+
+#right-btn {
+  border-radius: 0 25px 25px 0;
+}
