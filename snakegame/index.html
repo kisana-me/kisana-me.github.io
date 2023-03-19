@@ -22,5 +22,98 @@
       <button id="down-btn" onclick="changeDirection('down')">▼</button>
     </div>
     <script src="src.js"></script>
+    <script src="../deeplearning/src.js"></script>
+    <script>
+      function findMaxIndex(arr) {
+        let maxIndex = 0;
+        for (let i = 1; i < arr.length; i++) {
+          if (arr[i] > arr[maxIndex]) {
+            maxIndex = i;
+          }
+        }
+        return maxIndex;
+      }
+
+      //初期設定
+      const Newron = [8,4]// 78~79~81
+      const learningRate = 0.5
+      let W = generateW(Newron)
+      let B = generateB(Newron)
+
+function opField(){
+  const dist = distance(snakeX, snakeY, foodX, foodY)
+  const distanceToWall = getDistanceToWall(snakeX, snakeY, fieldX, fieldY)
+  const prevDist = distance(prevSnakeX, prevSnakeY, foodX, foodY)
+  if(dist[0] < prevDist[0]) {
+    // x近くなった
+  } else if (dist[1] < prevDist[1]) {
+    // y近くなった
+  }
+  let reward
+  if (checkCollision()) {
+    initGame()
+    reward = 0.00001
+  } else if(checkWall()) {
+    initGame()
+    reward = 0
+  } else {
+    //reward = (30 - dist[2])*3.3/100
+    if(dist[0] < prevDist[0]) {
+      reward = 1
+    } else if (dist[1] < prevDist[1]) {
+      reward = 1
+    } else {
+      reward = (30 - dist[2])*3.3/100
+    }
+  }
+  console.log(reward)
+  let upHead = 0;
+  let downHead = 0;
+  let rightHead = 0;
+  let leftHead = 0;
+
+  switch(direction) {
+    case 'up':
+      upHead = 1;
+      break;
+    case 'down':
+      downHead = 1;
+      break;
+    case 'right':
+      rightHead = 1;
+      break;
+    case 'left':
+      leftHead = 1;
+      break;
+  }
+  let Input = [upHead,downHead,rightHead,leftHead,dist[0],dist[1],distanceToWall.x,distanceToWall.y]
+  let output = NN(Input, W, B)
+  let updated = updateNN(output.last, reward, output.x, W, B, learningRate)
+  W = updated[0]
+  B = updated[1]
+  const maxIndex = findMaxIndex(output.last)
+  if (maxIndex === 0) {
+    if (direction !== 'down') {
+    direction = 'up'
+    }
+  } else if (maxIndex === 1) {
+    if (direction !== 'up') {
+    direction = 'down'
+    }
+  } else if (maxIndex === 2) {
+    if (direction !== 'left') {
+    direction = 'right'
+    }
+  } else if (maxIndex === 3) {
+    if (direction !== 'right') {
+    direction = 'left'
+    }
+  }
+
+}
+
+
+
+    </script>
   </body>
 </html>

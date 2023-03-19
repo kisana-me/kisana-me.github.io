@@ -3,7 +3,7 @@ let snake, snakeX, snakeY, snakeSize, snakeSpeed, snakeLength, direction, prevSn
 let foodX, foodY, foodSize, foodScore
 let score, gameCount
 // Canvas Sizeが600x400の時、一升20で
-const gameTime = 2
+const gameTime = 5000
 const gridSize = 20
 const fieldX = 30
 const fieldY = 20
@@ -265,13 +265,14 @@ function changeDirection(newDirection) {
 // 出力は次の頭の向き4つで
 // 出力のゲーム結果から報酬関数より報酬が与えられます。
 // 壁衝突で0、食べ物までの近さで0~1、食べ物衝突で1の報酬が与えられます。
-
+// NNに状態、結果、報酬を与える
+// next = connectNN(reward, direction, dist[0], dist[1], distanceToWall.x, distanceToWall.y)
+// nextの内容でdirectionを変更
 function distance(x1, y1, x2, y2) {
   const dx = x1 - x2
   const dy = y1 - y2
   return [Math.sqrt(dx*dx), Math.sqrt(dy*dy), Math.sqrt(dx * dx + dy * dy)]
 }
-
 function getDistanceToWall(snakeX, snakeY, fieldX, fieldY) {
   // x座標において最も近い壁までの距離を計算する
   const distanceToLeftWall = snakeX
@@ -289,14 +290,12 @@ function getDistanceToWall(snakeX, snakeY, fieldX, fieldY) {
     y: distanceToVerticalWall
   }
 }
-
+/*
 function opField(){
-  //食べ物
   const dist = distance(snakeX, snakeY, foodX, foodY)
-  console.log(`xは${dist[0]}、yは${dist[1]}、xyは${dist[2]}です。`)
-  //壁
+  console.log(`食べ物までxは${dist[0]}、yは${dist[1]}、xyは${dist[2]}です。`)
   const distanceToWall = getDistanceToWall(snakeX, snakeY, fieldX, fieldY)
-  console.log(`${distanceToWall.x}と${distanceToWall.y}`)
+  console.log(`壁までは${distanceToWall.x}と${distanceToWall.y}`)
   const prevDist = distance(prevSnakeX, prevSnakeY, foodX, foodY)
   if(dist[0] < prevDist[0]) {
     // x近くなった
@@ -314,8 +313,5 @@ function opField(){
     reward = 1/dist[2]
   }
   console.log(reward)
-
-  // NNに状態、結果、報酬を与える
-  // next = connectNN(reward, direction, dist[0], dist[1], distanceToWall.x, distanceToWall.y)
-  // nextの内容でdirectionを変更
 }
+*/
