@@ -1,9 +1,9 @@
 // ゲームの状態を表す変数
-let snake, snakeX, snakeY, snakeSize, snakeSpeed, snakeLength, direction
+let snake, snakeX, snakeY, snakeSize, snakeSpeed, snakeLength, direction, prevSnakeX, prevSnakeY
 let foodX, foodY, foodSize, foodScore
 let score, gameCount
 // Canvas Sizeが600x400の時、一升20で
-const gameTime = 3
+const gameTime = 2
 const gridSize = 20
 const fieldX = 30
 const fieldY = 20
@@ -43,6 +43,8 @@ function spawnFood() {
 function updateGameState() {
   // 蛇の位置を更新する
   let newHead = {'x': snakeX, 'y': snakeY};
+  prevSnakeX = snakeX
+  prevSnakeY = snakeY
   switch (direction) {
     case 'left':
       snakeX -= snakeSpeed
@@ -64,12 +66,7 @@ function updateGameState() {
   snake.unshift(newHead)
   snake.splice(snakeLength+1, 1)
   // .width || .heightで取得することができるため、比較する。
-  if (snakeX < 0 || snakeX + snakeSize > fieldX) {
-    gameOver()
-  }
-  if (snakeY < 0 || snakeY + snakeSize > fieldY) {
-    gameOver()
-  }
+  
 
   // 食べ物に当たったらスコアを加算する
   if (snakeX < foodX + foodSize &&
@@ -80,6 +77,17 @@ function updateGameState() {
     snakeLength++
     spawnFood()
   }
+}
+
+//
+function checkWall() {
+  if (snakeX < 0 || snakeX + snakeSize > fieldX) {
+    return true
+  }
+  if (snakeY < 0 || snakeY + snakeSize > fieldY) {
+    return true
+  }
+  return false
 }
 
 // 蛇の頭と体の位置を比較して、ゲームオーバーの条件を判定する関数
@@ -178,9 +186,8 @@ function gameLoop() {
   gameCount += 1
   updateGameState()
   renderGame()
-  if(checkCollision()){
-    gameOver()
-  }
+  // if check => init
+  opField()
 }
 
 // ゲームを開始する
@@ -249,4 +256,66 @@ function changeDirection(newDirection) {
       }
       break;
   }
+}
+
+////////////////
+//     AI     //
+////////////////
+// 入力は頭の向き4つ、食べ物までの距離XYで2つ、近くの壁までの距離XYで2つ、計8つで
+// 出力は次の頭の向き4つで
+// 出力のゲーム結果から報酬関数より報酬が与えられます。
+// 壁衝突で0、食べ物までの近さで0~1、食べ物衝突で1の報酬が与えられます。
+
+function distance(x1, y1, x2, y2) {
+  const dx = x1 - x2
+  const dy = y1 - y2
+  return [Math.sqrt(dx*dx), Math.sqrt(dy*dy), Math.sqrt(dx * dx + dy * dy)]
+}
+
+function getDistanceToWall(snakeX, snakeY, fieldX, fieldY) {
+  // x座標において最も近い壁までの距離を計算する
+  const distanceToLeftWall = snakeX
+  const distanceToRightWall = fieldX - snakeX - 1
+  const distanceToHorizontalWall = Math.min(distanceToLeftWall, distanceToRightWall)
+
+  // y座標において最も近い壁までの距離を計算する
+  const distanceToTopWall = snakeY
+  const distanceToBottomWall = fieldY - snakeY - 1
+  const distanceToVerticalWall = Math.min(distanceToTopWall, distanceToBottomWall)
+
+  // x座標とy座標の距離のうち、最も近い壁までの距離を返す
+  return {
+    x: distanceToHorizontalWall,
+    y: distanceToVerticalWall
+  }
+}
+
+function opField(){
+  //食べ物
+  const dist = distance(snakeX, snakeY, foodX, foodY)
+  console.log(`xは${dist[0]}、yは${dist[1]}、xyは${dist[2]}です。`)
+  //壁
+  const distanceToWall = getDistanceToWall(snakeX, snakeY, fieldX, fieldY)
+  console.log(`${distanceToWall.x}と${distanceToWall.y}`)
+  const prevDist = distance(prevSnakeX, prevSnakeY, foodX, foodY)
+  if(dist[0] < prevDist[0]) {
+    // x近くなった
+  } else if (dist[1] < prevDist[1]) {
+    // y近くなった
+  }
+  let reward
+  if (checkCollision()) {
+    initGame()
+    reward = 0.00001
+  } else if(checkWall()) {
+    initGame()
+    reward = 0
+  } else {
+    reward = 1/dist[2]
+  }
+  console.log(reward)
+
+  // NNに状態、結果、報酬を与える
+  // next = connectNN(reward, direction, dist[0], dist[1], distanceToWall.x, distanceToWall.y)
+  // nextの内容でdirectionを変更
 }
