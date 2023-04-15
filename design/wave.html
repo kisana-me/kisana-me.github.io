@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Wave</title>
+</head>
+
+<body>
+
+  <canvas id="myCanvas" width="500" height="300"></canvas>
+  <!--
+  <label for="amplitude1">振幅1：</label>
+  <input type="number" id="amplitude1" value="50">
+  <label for="period1">周期1：</label>
+  <input type="number" id="period1" value="0.21"><br>
+  <label for="amplitude2">振幅2：</label>
+  <input type="number" id="amplitude2" value="50">
+  <label for="period2">周期2：</label>
+  <input type="number" id="period2" value="0.24"><br>
+  <label for="amplitude3">振幅3：</label>
+  <input type="number" id="amplitude3" value="50">
+  <label for="period3">周期3：</label>
+  <input type="number" id="period3" value="0.27"><br>
+  -->
+  <button onclick="startAnimation()">アニメーションを開始</button>
+  <button onclick="stopAnimation()">アニメーションを停止</button>
+
+  <script>
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+    let animationId = null;
+
+    const waves = [
+      { amplitude: 50, period: 0.21 },
+      { amplitude: 50, period: 0.24 },
+      { amplitude: 50, period: 0.27 },
+    ];
+
+    function drawSin(period, amplitude, time, i) {
+      // sin波を描画
+      ctx.beginPath();
+      for (let x = 0; x < canvas.width; x++) {
+        const y = Math.sin((x / canvas.width + time) * period * 2 * Math.PI) * amplitude + canvas.height / 2;
+        ctx.lineTo(x, y);
+      }
+      if (i === 0) {
+        ctx.strokeStyle = "#95e34e";
+        ctx.fillStyle = "#95e34e33";
+      } else if (i === 1) {
+        ctx.strokeStyle = "#49e2ff";
+        ctx.fillStyle = "#49e2ff33";
+      } else if (i === 2) {
+        ctx.strokeStyle = "#f77356";
+        ctx.fillStyle = "#f7735633";
+      }
+      ctx.stroke();
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.lineTo(0, canvas.height);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function updateSin() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < waves.length; i++) {
+        const amplitude = Number(waves[i].amplitude);
+        const period = Number(waves[i].period);
+        drawSin(period, amplitude, Date.now() / 1000, i);
+      }
+    }
+
+    function startAnimation() {
+      function animate() {
+        updateSin();
+        animationId = requestAnimationFrame(animate);
+      }
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function stopAnimation() {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  </script>
+</body>
+
+</html>

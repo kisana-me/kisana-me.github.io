@@ -3,7 +3,7 @@ let snake, snakeX, snakeY, snakeSize, snakeSpeed, snakeLength, direction, prevSn
 let foodX, foodY, foodSize, foodScore
 let score, gameCount
 // Canvas Sizeが600x400の時、一升20で
-const gameTime = 5000
+const gameTime = 50
 const gridSize = 20
 const fieldX = 30
 const fieldY = 20
@@ -69,14 +69,6 @@ function updateGameState() {
   
 
   // 食べ物に当たったらスコアを加算する
-  if (snakeX < foodX + foodSize &&
-    snakeX + snakeSize > foodX &&
-    snakeY < foodY + foodSize &&
-    snakeY + snakeSize > foodY) {
-    score += foodScore
-    snakeLength++
-    spawnFood()
-  }
 }
 
 //
@@ -315,3 +307,15 @@ function opField(){
   console.log(reward)
 }
 */
+
+function createFieldArray(fieldX, fieldY, snakeX, snakeY, foodX, foodY) {
+  const fieldArray = new Array(fieldX * fieldY).fill(0);
+
+  const snakeHeadIndex = snakeY * fieldX + snakeX;
+  fieldArray[snakeHeadIndex] = 0.1;
+
+  const foodIndex = foodY * fieldX + foodX;
+  fieldArray[foodIndex] = 1;
+
+  return fieldArray;
+}
