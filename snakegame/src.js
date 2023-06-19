@@ -3,7 +3,7 @@ let snake, snakeX, snakeY, snakeSize, snakeSpeed, snakeLength, direction, prevSn
 let foodX, foodY, foodSize, foodScore
 let score, gameCount
 // Canvas Sizeが600x400の時、一升20で
-const gameTime = 50
+const gameTime = 3
 const gridSize = 20
 const fieldX = 30
 const fieldY = 20
