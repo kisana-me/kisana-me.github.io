@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<head>
+  <title>test</title>
+  <style>
+  .box-container {
+    position: relative;
+    width: 100vw;
+    height: 200px;
+  }
+  .drag-and-drop {
+    cursor: move;
+    position: absolute;
+    z-index: 1000;
+    width: 100px;
+    height: 100px;
+  }
+  .drag {
+      z-index: 1001;
+  }
+  #red-box {
+    background-color: rgb(242, 65, 103);
+  }
+  #blue-box {
+    background-color: rgb(63, 76, 253);
+  }
+  #yellow-box {
+    background-color: rgb(250, 225, 101);
+  }
+  </style>
+</head>
+<body>
+  <div class="box-container">
+    <div class="drag-and-drop" id="red-box">drag</div>
+    <div class="drag-and-drop" id="blue-box">and</div>
+    <div class="drag-and-drop" id="yellow-box">drop</div>
+  </div>
+<script>
+let elements = document.getElementsByClassName("drag-and-drop")
+let x
+let y
+for(let i = 0; i < elements.length; i++) {
+    elements[i].addEventListener("mousedown", mtdown, false)
+    elements[i].addEventListener("touchstart", mtdown, false)
+}
+function mtdown(e) {
+    this.classList.add("drag")
+    if(e.type === "mousedown") {
+      var event = e
+    } else {
+      var event = e.changedTouches[0]
+    }
+    x = event.pageX - this.offsetLeft
+    y = event.pageY - this.offsetTop
+    document.body.addEventListener("mousemove", mtmove, false)
+    document.body.addEventListener("touchmove", mtmove, false)
+}
+function mtmove(e) {
+    let drag = document.getElementsByClassName("drag")[0]
+    if(e.type === "mousemove") {
+      var event = e
+    } else {
+      var event = e.changedTouches[0]
+    }
+    e.preventDefault()
+    drag.style.top = event.pageY - y + "px"
+    drag.style.left = event.pageX - x + "px"
+    drag.addEventListener("mouseup", mtup, false)
+    document.body.addEventListener("mouseleave", mtup, false)
+    drag.addEventListener("touchend", mtup, false);
+    document.body.addEventListener("touchleave", mtup, false)
+}
+function mtup(e) {
+    let drag = document.getElementsByClassName("drag")[0]
+    document.body.removeEventListener("mousemove", mtmove, false)
+    drag.removeEventListener("mouseup", function() { mtup() }, false)
+    document.body.removeEventListener("touchmove", mtmove, false)
+    drag.removeEventListener("touchend", mtup, false)
+    drag.classList.remove("drag")
+}
+
+</script>
+</body>
