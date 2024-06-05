@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>8-bit Music Creator</title>
+  <style>
+    #grid, #bassGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 20px);
+      grid-auto-rows: 20px;
+      grid-gap: 2px;
+    }
+    .cell {
+      width: 20px;
+      height: 20px;
+      background-color: lightgray;
+      border: 1px solid gray;
+    }
+    .active {
+      background-color: darkgray;
+    }
+    .bassActive {
+      background-color: brown;
+    }
+    .current {
+      background-color: yellow !important;
+    }
+    .bassCurrent {
+      background-color: orange !important;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <label for="gridLength">Grid Length:</label>
+    <input type="number" id="gridLength" value="16">
+    <button onclick="createGrids()">Set Grid</button>
+  </div>
+  <div id="grid"></div>
+  <div id="bassGrid"></div>
+  <button onclick="playMusic()">Play</button>
+  <label for="speed">Speed:</label>
+  <input type="range" id="speed" min="50" max="2000" value="500">
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>情報数学</title>
+    <style></style>
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+    <h1>情報数学</h1>
+    <h2>3回目</h2>
+    <h3>合同≡</h3>
+    <div>
+      <p>正のみ</p>
+      <input type="number" id="mod_num_1">
+      と(≡)
+      <input type="number" id="mod_num_2">
+      は
+      <input type="number" id="mod_num_3">
+      で合同か
+      <button onclick="modCulc1()">計算1</button>
+      <p id="mod_result1">ここに結果</p>
+    </div>
+    <hr />
+    <div>
+      <p>負の数がmodかどうか</p>
+      N=<input type="number" id="mod_num_4">
+      で負の数
+      <input type="number" id="mod_num_5">
+      は？
+      <button onclick="modCulc2()">計算2</button>
+      <p id="mod_result2">ここに結果</p>
+    </div>
+    <br><br>
+    <script src="src.js"></script>
+  </body>
+</html>
