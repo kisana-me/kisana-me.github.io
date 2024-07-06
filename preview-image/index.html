@@ -105,6 +105,24 @@
         #next-arrow {
             right: 10px;
         }
+        .viewer-button {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1002;
+        }
+        #reset-button {
+            top: 10px;
+            right: 10px;
+        }
+        #close-button {
+            top: 10px;
+            left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -135,6 +153,8 @@
     <div id="fullscreen-viewer">
         <div id="fullscreen-background"></div>
         <div id="image-container"></div>
+        <button id="reset-button" class="viewer-button">↺</button>
+        <button id="close-button" class="viewer-button">×</button>
         <a href="#" id="prev-arrow" class="nav-arrow">&#9664;</a>
         <a href="#" id="next-arrow" class="nav-arrow">&#9654;</a>
     </div>
@@ -307,6 +327,8 @@
 
             if (Math.abs(diffX) > Math.abs(diffY)) {
                 if (Math.abs(diffX) > swipeThreshold) {
+                    resetZoom();
+                    updateImagePosition();
                     if (diffX > 0 && currentImageIndex > 0) {
                         currentImageIndex--;
                     } else if (diffX < 0 && currentImageIndex < currentImages.length - 1) {
@@ -325,6 +347,12 @@
             isSwiping = false;
         }
 
+        document.getElementById('reset-button').addEventListener('click', () => {
+            resetZoom();
+            updateImagePosition();
+        });
+
+        document.getElementById('close-button').addEventListener('click', closeFullscreen);
         function handleDrag(diffX, diffY) {
             translateX += diffX;
             translateY += diffY;
@@ -385,6 +413,8 @@
         prevArrow.addEventListener('click', (e) => {
             e.preventDefault();
             if (currentImageIndex > 0) {
+                resetZoom();
+                updateImagePosition();
                 currentImageIndex--;
                 resetZoom();
                 updateImagePosition();
@@ -395,6 +425,8 @@
         nextArrow.addEventListener('click', (e) => {
             e.preventDefault();
             if (currentImageIndex < currentImages.length - 1) {
+                resetZoom();
+                updateImagePosition();
                 currentImageIndex++;
                 resetZoom();
                 updateImagePosition();
@@ -402,7 +434,35 @@
             }
         });
 
+        function handleKeyboardNavigation(event) {
+            if (fullscreenViewer.style.display === 'block') {
+                switch (event.key) {
+                    case 'ArrowLeft':
+                        if (currentImageIndex > 0) {
+                            resetZoom();
+                            updateImagePosition();
+                            currentImageIndex--;
+                            resetZoom();
+                            updateImagePosition();
+                            updateArrows();
+                        }
+                        break;
+                    case 'ArrowRight':
+                        if (currentImageIndex < currentImages.length - 1) {
+                            resetZoom();
+                            updateImagePosition();
+                            currentImageIndex++;
+                            resetZoom();
+                            updateImagePosition();
+                            updateArrows();
+                        }
+                        break;
+                }
+            }
+        }
 
+        // イベントリスナーを追加
+        document.addEventListener('keydown', handleKeyboardNavigation);
         
     </script>
 </body>
