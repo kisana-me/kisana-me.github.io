@@ -23,8 +23,6 @@
             overflow: hidden;
             touch-action: none;
             margin-bottom: 10px;
-            background-size: cover;
-            background-position: center;
         }
         .icon-wrapper {
             position: absolute;
@@ -37,20 +35,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 24px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             width: 100%;
             height: 100%;
             box-sizing: border-box;
-            overflow: hidden;
-            background-color: transparent;
-        }
-        .icon img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
         }
         .icon-wrapper.editable .icon {
             cursor: move;
-            border: 1px dashed #000;
         }
         .icon-wrapper.editable::after {
             content: '';
@@ -69,7 +63,6 @@
             word-wrap: break-word;
             max-width: 100%;
             margin-top: 5px;
-            pointer-events: none;
         }
         .delete-button {
             position: absolute;
@@ -114,11 +107,9 @@
 <body>
     <div id="container"></div>
     <div id="controls">
-        <input type="text" id="iconInput" placeholder="アイコン入力 (絵文字や文字)">
-        <input type="file" id="imageInput" accept="image/*">
+        <input type="text" id="iconInput" placeholder="アイコン入力" maxlength="2">
         <input type="text" id="urlInput" placeholder="URL入力 (オプション)">
         <input type="text" id="descriptionInput" placeholder="説明入力 (オプション)">
-        <input type="file" id="backgroundInput" accept="image/*">
         <button id="addIcon">アイコンを追加</button>
         <button id="toggleEdit">確定/編集</button>
         <button id="outputJSON">JSONを出力</button>
@@ -131,10 +122,8 @@
         const container = document.getElementById('container');
         const addIconButton = document.getElementById('addIcon');
         const iconInput = document.getElementById('iconInput');
-        const imageInput = document.getElementById('imageInput');
         const urlInput = document.getElementById('urlInput');
         const descriptionInput = document.getElementById('descriptionInput');
-        const backgroundInput = document.getElementById('backgroundInput');
         const toggleEditButton = document.getElementById('toggleEdit');
         const outputJSONButton = document.getElementById('outputJSON');
         const outputTextarea = document.getElementById('output');
@@ -146,7 +135,7 @@
         let startX, startY, startWidth, startHeight, iconStartX, iconStartY;
         let isEditable = true;
 
-        function createIcon(text, left, top, width, height, url, description, imageUrl) {
+        function createIcon(text, left, top, width, height, url, description) {
             const iconWrapper = document.createElement('div');
             iconWrapper.className = 'icon-wrapper editable';
             iconWrapper.style.left = left;
@@ -156,15 +145,7 @@
 
             const icon = document.createElement('div');
             icon.className = 'icon';
-            if (imageUrl) {
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.alt = text;
-                icon.appendChild(img);
-            } else {
-                icon.textContent = text;
-                adjustFontSize(icon);
-            }
+            icon.textContent = text;
             if (url) icon.dataset.url = url;
             iconWrapper.appendChild(icon);
 
@@ -187,11 +168,6 @@
             iconWrapper.addEventListener('mousedown', startDragResize);
             iconWrapper.addEventListener('touchstart', startDragResize);
             icon.addEventListener('click', handleIconClick);
-        }
-
-        function adjustFontSize(icon) {
-            const fontSize = Math.min(icon.offsetWidth, icon.offsetHeight) / 2;
-            icon.style.fontSize = `${fontSize}px`;
         }
 
         function handleIconClick(e) {
@@ -253,11 +229,6 @@
 
                 activeIconWrapper.style.width = newWidth + '%';
                 activeIconWrapper.style.height = newHeight + '%';
-
-                const icon = activeIconWrapper.querySelector('.icon');
-                if (!icon.querySelector('img')) {
-                    adjustFontSize(icon);
-                }
             }
         }
 
@@ -275,46 +246,38 @@
         function toggleEdit() {
             isEditable = !isEditable;
             toggleEditButton.textContent = isEditable ? '確定' : '編集';
-            container.classList.toggle('editable', isEditable);
             const iconWrappers = container.querySelectorAll('.icon-wrapper');
             iconWrappers.forEach(wrapper => {
-                wrapper.classList.toggle('editable', isEditable);
-                wrapper.querySelector('.delete-button').style.display = isEditable ? 'flex' : 'none';
+                if (isEditable) {
+                    wrapper.classList.add('editable');
+                    wrapper.querySelector('.delete-button').style.display = 'flex';
+                } else {
+                    wrapper.classList.remove('editable');
+                    wrapper.querySelector('.delete-button').style.display = 'none';
+                }
             });
         }
 
         function outputJSON() {
             const iconWrappers = container.querySelectorAll('.icon-wrapper');
-            const iconData = Array.from(iconWrappers).map(wrapper => {
-                const icon = wrapper.querySelector('.icon');
-                const img = icon.querySelector('img');
-                return {
-                    text: img ? img.alt : icon.textContent,
-                    left: wrapper.style.left,
-                    top: wrapper.style.top,
-                    width: wrapper.style.width,
-                    height: wrapper.style.height,
-                    url: icon.dataset.url || '',
-                    description: wrapper.querySelector('.icon-description').textContent,
-                    image_url: img ? img.src : ''
-                };
-            });
-            const backgroundImage = container.style.backgroundImage;
-            outputTextarea.value = JSON.stringify({
-                background_image: backgroundImage ? backgroundImage.slice(5, -2) : '',
-                icons: iconData
-            }, null, 2);
+            const iconData = Array.from(iconWrappers).map(wrapper => ({
+                text: wrapper.querySelector('.icon').textContent,
+                left: wrapper.style.left,
+                top: wrapper.style.top,
+                width: wrapper.style.width,
+                height: wrapper.style.height,
+                url: wrapper.querySelector('.icon').dataset.url || '',
+                description: wrapper.querySelector('.icon-description').textContent
+            }));
+            outputTextarea.value = JSON.stringify(iconData, null, 2);
         }
 
         function importJSON() {
             try {
                 const jsonData = JSON.parse(inputTextarea.value);
                 container.innerHTML = '';
-                if (jsonData.background_image) {
-                    container.style.backgroundImage = `url(${jsonData.background_image})`;
-                }
-                jsonData.icons.forEach(icon => {
-                    createIcon(icon.text, icon.left, icon.top, icon.width, icon.height, icon.url, icon.description, icon.image_url);
+                jsonData.forEach(icon => {
+                    createIcon(icon.text, icon.left, icon.top, icon.width, icon.height, icon.url, icon.description);
                 });
                 inputTextarea.value = '';
             } catch (error) {
@@ -323,42 +286,15 @@
         }
 
         addIconButton.addEventListener('click', () => {
-            const file = imageInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    createIcon('', 
-                               Math.random() * 80 + '%', 
-                               Math.random() * 80 + '%', 
-                               '20%', '20%', 
-                               urlInput.value.trim(),
-                               descriptionInput.value.trim(),
-                               e.target.result);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                createIcon(iconInput.value.trim() || '★', 
-                           Math.random() * 80 + '%', 
-                           Math.random() * 80 + '%', 
-                           '20%', '20%', 
-                           urlInput.value.trim(),
-                           descriptionInput.value.trim());
-            }
+            createIcon(iconInput.value.trim() || '★', 
+                       Math.random() * 80 + '%', 
+                       Math.random() * 80 + '%', 
+                       '20%', '20%', 
+                       urlInput.value.trim(),
+                       descriptionInput.value.trim());
             iconInput.value = '';
-            imageInput.value = '';
             urlInput.value = '';
             descriptionInput.value = '';
-        });
-
-        backgroundInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    container.style.backgroundImage = `url(${e.target.result})`;
-                };
-                reader.readAsDataURL(file);
-            }
         });
 
         iconInput.addEventListener('keypress', function(e) {

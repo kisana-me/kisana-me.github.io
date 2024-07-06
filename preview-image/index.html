@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SNS風画像ビューア</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #e8f5e9;
+        }
+        .post {
+            max-width: 600px;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .post-text {
+            margin-bottom: 10px;
+        }
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .preview-image {
+            width: calc(33.333% - 5px);
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            cursor: pointer;
+        }
+        .single-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+        #fullscreen-viewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        #fullscreen-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(0.7);
+            transform: scale(1.1);
+        }
+        #image-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            transition: transform 0.3s ease-out;
+        }
+        .fullscreen-image {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
+        .fullscreen-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            -webkit-user-drag: none; /* Chrome, Safari, Opera */
+            -khtml-user-drag: none; /* Konqueror */
+            -moz-user-drag: none; /* Firefox */
+            -o-user-drag: none; /* Opera */
+            user-drag: none; /* Standard syntax */
+        }
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #000;
+            padding: 10px;
+            text-decoration: none;
+            font-size: 24px;
+            z-index: 1001;
+        }
+        #prev-arrow {
+            left: 10px;
+        }
+        #next-arrow {
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="post">
+        <p class="post-text">最近のブログのサムネイル画像です。</p>
+        <div class="image-preview">
+            <img src="https://m.ivecolor.com/ivecolor/variants/images/thumbnails/2aqrsyg4uicb3v7kz.webp" alt="thumbnail1" class="preview-image">
+            <img src="https://m.ivecolor.com/ivecolor/variants/images/thumbnails/6d31ujl4ysachi8gn.webp" alt="thumbnail2" class="preview-image">
+            <img src="https://m.ivecolor.com/ivecolor/variants/images/thumbnails/6v4mrj2fu7lnco0iz.webp" alt="thumbnail3" class="preview-image">
+            <img src="https://m.ivecolor.com/ivecolor/variants/images/thumbnails/sgwjpl1v4caf2z3tk.webp" alt="thumbnail4" class="preview-image">
+        </div>
+    </div>
+
+    <div class="post">
+        <p class="post-text">TWICE!!!</p>
+        <img src="https://m.ivecolor.com/ivecolor/variants/images/thumbnails/9hiy43vgmxar6peuf.webp" alt="TWICE SIGNED" class="single-image">
+    </div>
+
+    <div class="post">
+        <p class="post-text">evering. LG gram style. IVE.</p>
+        <div class="image-preview">
+            <img src="https://m.ivecolor.com/ivecolor/variants/images/thumbnails/bsdj9n1ux2er7zl3p.webp" alt="evering" class="preview-image">
+            <img src="https://m.ivecolor.com/ivecolor/variants/images/thumbnails/a6fhqwgb1joxluecv.webp" alt="LG gram style" class="preview-image">
+            <img src="https://m.ivecolor.com/ivecolor/variants/images/thumbnails/rp4u5fa92b3jz0won.webp" alt="IVE" class="preview-image">
+        </div>
+    </div>
+
+    <div id="fullscreen-viewer">
+        <div id="fullscreen-background"></div>
+        <div id="image-container"></div>
+        <a href="#" id="prev-arrow" class="nav-arrow">&#9664;</a>
+        <a href="#" id="next-arrow" class="nav-arrow">&#9654;</a>
+    </div>
+
+    <script>
+        let currentImageIndex = 0;
+        let currentImages = [];
+        const fullscreenViewer = document.getElementById('fullscreen-viewer');
+        const imageContainer = document.getElementById('image-container');
+        const fullscreenBackground = document.getElementById('fullscreen-background');
+        const prevArrow = document.getElementById('prev-arrow');
+        const nextArrow = document.getElementById('next-arrow');
+        let scale = 1;
+        let translateX = 0;
+        let translateY = 0;
+        let startX = 0;
+        let startY = 0;
+        let lastTouchDistance = 0;
+        let isDragging = false;
+        let isSwiping = false;
+        let swipeStartX = 0;
+        let swipeStartY = 0;
+
+        document.querySelectorAll('.preview-image, .single-image').forEach((img) => {
+            img.addEventListener('click', () => {
+                const post = img.closest('.post');
+                currentImages = Array.from(post.querySelectorAll('img'));
+                currentImageIndex = currentImages.indexOf(img);
+                showFullscreen();
+            });
+        });
+
+        function showFullscreen() {
+            imageContainer.innerHTML = '';
+            currentImages.forEach((img, index) => {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'fullscreen-image';
+                const imgElement = document.createElement('img');
+                imgElement.src = img.src;
+                imgElement.alt = img.alt;
+                imgWrapper.appendChild(imgElement);
+                imageContainer.appendChild(imgWrapper);
+            });
+            fullscreenBackground.style.backgroundImage = `url(${currentImages[currentImageIndex].src})`;
+            fullscreenViewer.style.display = 'block';
+            updateImagePosition();
+            updateArrows();
+        }
+
+        function updateImagePosition() {
+            imageContainer.style.transform = `translateX(${-currentImageIndex * 100}%)`;
+            // 背景更新
+            fullscreenBackground.style.backgroundImage = `url(${currentImages[currentImageIndex].src})`;
+        }
+
+        function updateArrows() {
+            prevArrow.style.display = currentImageIndex > 0 ? 'block' : 'none';
+            nextArrow.style.display = currentImageIndex < currentImages.length - 1 ? 'block' : 'none';
+        }
+
+        fullscreenViewer.addEventListener('click', (e) => {
+            if ( e.target.parentElement === imageContainer) {
+                closeFullscreen();
+            }
+        });
+
+        fullscreenViewer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY * -0.01;
+            const newScale = Math.max(1, Math.min(scale * (1 + delta), 3));
+            zoomImage(e.clientX, e.clientY, newScale);
+        });
+
+        fullscreenViewer.addEventListener('mousedown', (e) => {
+            startDrag(e.clientX, e.clientY);
+        });
+
+        fullscreenViewer.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const diffX = e.clientX - startX;
+                const diffY = e.clientY - startY;
+                handleDrag(diffX, diffY);
+                startX = e.clientX;
+                startY = e.clientY;
+            }
+        });
+
+        fullscreenViewer.addEventListener('mouseup', () => {
+            endDrag();
+        });
+
+        fullscreenViewer.addEventListener('mouseleave', () => {
+            endDrag();
+        });
+
+        fullscreenViewer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                if (scale === 1) {
+                    startSwipe(e.touches[0].clientX, e.touches[0].clientY);
+                } else {
+                    startDrag(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            } else if (e.touches.length === 2) {
+                lastTouchDistance = getTouchDistance(e.touches);
+            }
+        });
+
+        fullscreenViewer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                if (scale === 1 && isSwiping) {
+                    const currentX = e.touches[0].clientX;
+                    const currentY = e.touches[0].clientY;
+                    const diffX = currentX - swipeStartX;
+                    const diffY = currentY - swipeStartY;
+                    
+                    if (Math.abs(diffX) > Math.abs(diffY)) {
+                        handleSwipe(diffX);
+                    }
+                } else if (isDragging) {
+                    const diffX = e.touches[0].clientX - startX;
+                    const diffY = e.touches[0].clientY - startY;
+                    handleDrag(diffX, diffY);
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                }
+            } else if (e.touches.length === 2) {
+                const currentDistance = getTouchDistance(e.touches);
+                const delta = currentDistance - lastTouchDistance;
+                const newScale = Math.max(1, Math.min(scale * (1 + delta * 0.01), 3));
+                const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                zoomImage(centerX, centerY, newScale);
+                lastTouchDistance = currentDistance;
+            }
+        });
+
+        fullscreenViewer.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) {
+                if (isSwiping) {
+                    endSwipe(e);
+                } else if (isDragging) {
+                    endDrag();
+                } else {
+                    handleFullscreenTouchEnd(e);
+                }
+            }
+        });
+
+        function startDrag(x, y) {
+            startX = x;
+            startY = y;
+            isDragging = true;
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        function startSwipe(x, y) {
+            swipeStartX = x;
+            swipeStartY = y;
+            isSwiping = true;
+        }
+
+        function endSwipe(e) {
+            const diffX = e.changedTouches[0].clientX - swipeStartX;
+            const diffY = e.changedTouches[0].clientY - swipeStartY;
+            const swipeThreshold = 50;
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > swipeThreshold) {
+                    if (diffX > 0 && currentImageIndex > 0) {
+                        currentImageIndex--;
+                    } else if (diffX < 0 && currentImageIndex < currentImages.length - 1) {
+                        currentImageIndex++;
+                    }
+                    resetZoom();
+                    updateImagePosition();
+                    updateArrows();
+                } else {
+                    updateImagePosition();
+                }
+            } else if (Math.abs(diffY) > swipeThreshold) {
+                closeFullscreen();
+            }
+
+            isSwiping = false;
+        }
+
+        function handleDrag(diffX, diffY) {
+            translateX += diffX;
+            translateY += diffY;
+            updateImageTransform();
+        }
+
+        function handleSwipe(diffX) {
+            imageContainer.style.transform = `translateX(calc(${-currentImageIndex * 100}% + ${diffX}px))`;
+        }
+
+        function getTouchDistance(touches) {
+            return Math.hypot(
+                touches[0].clientX - touches[1].clientX,
+                touches[0].clientY - touches[1].clientY
+            );
+        }
+
+        function zoomImage(centerX, centerY, newScale) {
+            const imageRect = imageContainer.children[currentImageIndex].getBoundingClientRect();
+            const imageCenterX = imageRect.left + imageRect.width / 2;
+            const imageCenterY = imageRect.top + imageRect.height / 2;
+
+            translateX += (centerX - imageCenterX) * (1 - newScale / scale);
+            translateY += (centerY - imageCenterY) * (1 - newScale / scale);
+
+            scale = newScale;
+            updateImageTransform();
+        }
+
+        function updateImageTransform() {
+            const currentImage = imageContainer.children[currentImageIndex].querySelector('img');
+            currentImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+
+        function resetZoom() {
+            scale = 1;
+            translateX = 0;
+            translateY = 0;
+            updateImageTransform();
+        }
+
+        function handleFullscreenTouchEnd(e) {
+            const touch = e.changedTouches[0];
+            const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (targetElement === fullscreenViewer || targetElement === imageContainer) {
+                closeFullscreen();
+            }
+        }
+
+        function closeFullscreen() {
+            fullscreenViewer.style.display = 'none';
+            resetZoom();
+            isSwiping = false;
+            isDragging = false;
+        }
+
+        prevArrow.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentImageIndex > 0) {
+                currentImageIndex--;
+                resetZoom();
+                updateImagePosition();
+                updateArrows();
+            }
+        });
+
+        nextArrow.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentImageIndex < currentImages.length - 1) {
+                currentImageIndex++;
+                resetZoom();
+                updateImagePosition();
+                updateArrows();
+            }
+        });
+
+
+        
+    </script>
+</body>
+</html>

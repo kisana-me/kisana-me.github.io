@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高度なレスポンシブ アイコン配置ツール</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            touch-action: none;
+            user-select: none;
+        }
+        #container {
+            width: 80vw;
+            height: 80vw;
+            max-width: 500px;
+            max-height: 500px;
+            border: 2px solid black;
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+            margin-bottom: 10px;
+        }
+        .icon {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            touch-action: none;
+        }
+        .icon.editable {
+            cursor: move;
+        }
+        .icon.editable::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            bottom: -5px;
+            width: 10px;
+            height: 10px;
+            background-color: #999;
+            border-radius: 50%;
+            cursor: se-resize;
+        }
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+            width: 80vw;
+            max-width: 500px;
+        }
+        input, button, textarea {
+            font-size: 16px;
+            padding: 5px;
+            margin: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #iconInput, #urlInput {
+            text-align: center;
+        }
+        #output, #input {
+            height: 100px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="controls">
+        <input type="text" id="iconInput" placeholder="アイコン入力" maxlength="2">
+        <input type="text" id="urlInput" placeholder="URL入力 (オプション)">
+        <button id="addIcon">アイコンを追加</button>
+        <button id="toggleEdit">確定/編集</button>
+        <button id="outputJSON">JSONを出力</button>
+        <textarea id="output" readonly></textarea>
+        <textarea id="input" placeholder="JSONを入力してインポート"></textarea>
+        <button id="importJSON">JSONをインポート</button>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const addIconButton = document.getElementById('addIcon');
+        const iconInput = document.getElementById('iconInput');
+        const urlInput = document.getElementById('urlInput');
+        const toggleEditButton = document.getElementById('toggleEdit');
+        const outputJSONButton = document.getElementById('outputJSON');
+        const outputTextarea = document.getElementById('output');
+        const inputTextarea = document.getElementById('input');
+        const importJSONButton = document.getElementById('importJSON');
+        let isDragging = false;
+        let isResizing = false;
+        let activeIcon = null;
+        let startX, startY, startWidth, startHeight, iconStartX, iconStartY;
+        let isEditable = true;
+
+        function createIcon(text, left, top, width, height, url) {
+            if (!isEditable) return;
+            const icon = document.createElement('div');
+            icon.className = 'icon editable';
+            icon.textContent = text;
+            icon.style.left = left;
+            icon.style.top = top;
+            icon.style.width = width;
+            icon.style.height = height;
+            if (url) icon.dataset.url = url;
+            container.appendChild(icon);
+
+            icon.addEventListener('mousedown', startDragResize);
+            icon.addEventListener('touchstart', startDragResize);
+            icon.addEventListener('click', handleIconClick);
+        }
+
+        function handleIconClick(e) {
+            if (!isEditable && e.target.dataset.url) {
+                window.open(e.target.dataset.url, '_blank');
+            }
+        }
+
+        function startDragResize(e) {
+            if (!isEditable) return;
+            e.preventDefault();
+            activeIcon = e.target;
+            const rect = activeIcon.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+
+            if (e.target === activeIcon && 
+                clientX > rect.right - 15 && 
+                clientY > rect.bottom - 15) {
+                isResizing = true;
+                startWidth = rect.width / containerRect.width * 100;
+                startHeight = rect.height / containerRect.height * 100;
+            } else {
+                isDragging = true;
+                iconStartX = (rect.left - containerRect.left) / containerRect.width * 100;
+                iconStartY = (rect.top - containerRect.top) / containerRect.height * 100;
+            }
+
+            startX = clientX;
+            startY = clientY;
+
+            document.addEventListener('mousemove', onDragResize);
+            document.addEventListener('touchmove', onDragResize);
+            document.addEventListener('mouseup', stopDragResize);
+            document.addEventListener('touchend', stopDragResize);
+        }
+
+        function onDragResize(e) {
+            if (!isDragging && !isResizing) return;
+
+            const containerRect = container.getBoundingClientRect();
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            const dx = (clientX - startX) / containerRect.width * 100;
+            const dy = (clientY - startY) / containerRect.height * 100;
+
+            if (isDragging) {
+                let newX = iconStartX + dx;
+                let newY = iconStartY + dy;
+
+                newX = Math.max(0, Math.min(newX, 100 - parseFloat(activeIcon.style.width)));
+                newY = Math.max(0, Math.min(newY, 100 - parseFloat(activeIcon.style.height)));
+
+                activeIcon.style.left = newX + '%';
+                activeIcon.style.top = newY + '%';
+            } else if (isResizing) {
+                let newWidth = Math.max(5, Math.min(startWidth + dx, 30));
+                let newHeight = Math.max(5, Math.min(startHeight + dy, 30));
+
+                activeIcon.style.width = newWidth + '%';
+                activeIcon.style.height = newHeight + '%';
+            }
+        }
+
+        function stopDragResize() {
+            isDragging = false;
+            isResizing = false;
+            activeIcon = null;
+
+            document.removeEventListener('mousemove', onDragResize);
+            document.removeEventListener('touchmove', onDragResize);
+            document.removeEventListener('mouseup', stopDragResize);
+            document.removeEventListener('touchend', stopDragResize);
+        }
+
+        function toggleEdit() {
+            isEditable = !isEditable;
+            toggleEditButton.textContent = isEditable ? '確定' : '編集';
+            const icons = container.querySelectorAll('.icon');
+            icons.forEach(icon => {
+                if (isEditable) {
+                    icon.classList.add('editable');
+                } else {
+                    icon.classList.remove('editable');
+                }
+            });
+        }
+
+        function outputJSON() {
+            const icons = container.querySelectorAll('.icon');
+            const iconData = Array.from(icons).map(icon => ({
+                text: icon.textContent,
+                left: icon.style.left,
+                top: icon.style.top,
+                width: icon.style.width,
+                height: icon.style.height,
+                url: icon.dataset.url || ''
+            }));
+            outputTextarea.value = JSON.stringify(iconData, null, 2);
+        }
+
+        function importJSON() {
+            try {
+                const jsonData = JSON.parse(inputTextarea.value);
+                container.innerHTML = '';
+                jsonData.forEach(icon => {
+                    createIcon(icon.text, icon.left, icon.top, icon.width, icon.height, icon.url);
+                });
+                inputTextarea.value = '';
+            } catch (error) {
+                alert('無効なJSONデータです。正しいJSONを入力してください。');
+            }
+        }
+
+        addIconButton.addEventListener('click', () => {
+            createIcon(iconInput.value.trim() || '★', 
+                       Math.random() * 80 + '%', 
+                       Math.random() * 80 + '%', 
+                       '10%', '10%', 
+                       urlInput.value.trim());
+            iconInput.value = '';
+            urlInput.value = '';
+        });
+
+        iconInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addIconButton.click();
+            }
+        });
+
+        toggleEditButton.addEventListener('click', toggleEdit);
+        outputJSONButton.addEventListener('click', outputJSON);
+        importJSONButton.addEventListener('click', importJSON);
+
+        // 初期アイコンを作成
+        createIcon('★', '40%', '40%', '10%', '10%', '');
+    </script>
+</body>
+</html>
