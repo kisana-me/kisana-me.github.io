@@ -1,61 +1,377 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>KISANA研究所</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-      .container {
-        border: 2px solid #ffa358;
-        border-radius: 20px;
-        width: 400px;
-        margin: 10px;
-        padding: 10px;
-      }
+        :root {
+            --primary-color: #00aaff;
+            --secondary-color: #aa00ff;
+            --background-color: #121212;
+            --surface-color: #1e1e1e;
+            --glass-bg: rgba(30, 30, 30, 0.7);
+            --text-color: #e0e0e0;
+            --text-secondary-color: #a0a0a0;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode {
+            --primary-color: #007bff;
+            --secondary-color: #6f42c1;
+            --background-color: #f0f2f5;
+            --surface-color: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --text-color: #212529;
+            --text-secondary-color: #6c757d;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--background-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, var(--primary-color), transparent 25%),
+                radial-gradient(circle at 85% 30%, var(--secondary-color), transparent 25%);
+            background-attachment: fixed;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 0 8px var(--primary-color), 0 0 16px var(--secondary-color);
+            margin: 0;
+            animation: fadeInDown 1s ease-out;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-links a, .theme-toggle-btn {
+            font-size: 1rem;
+            background: var(--glass-bg);
+            padding: 8px 15px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .nav-links a:hover, .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+        
+        .theme-toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            padding: 5px;
+        }
+
+        .hamburger-menu {
+            display: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+            perspective: 1000px;
+        }
+
+        .container {
+            background: var(--glass-bg);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 var(--shadow-color);
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s ease;
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid transparent;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -2px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .container:hover::before {
+            opacity: 1;
+        }
+
+        .container-inner {
+            background: var(--surface-color);
+            border-radius: 18px;
+            padding: 25px;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Animation delay for each container */
+        .container:nth-child(1) { animation-delay: 0.2s; }
+        .container:nth-child(2) { animation-delay: 0.3s; }
+        .container:nth-child(3) { animation-delay: 0.4s; }
+        .container:nth-child(4) { animation-delay: 0.5s; }
+        .container:nth-child(5) { animation-delay: 0.6s; }
+        .container:nth-child(6) { animation-delay: 0.7s; }
+
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        a {
+            color: var(--text-secondary-color);
+            text-decoration: none;
+            font-size: 1.1rem;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.4s ease;
+        }
+
+        a:hover {
+            color: var(--text-color);
+        }
+
+        a:hover::after {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 250px;
+                height: 100vh;
+                background: var(--surface-color);
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 30px;
+                transition: right 0.5s ease-in-out;
+                z-index: 1000;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            }
+            .nav-links.active {
+                right: 0;
+            }
+            .hamburger-menu {
+                display: block;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
-  </head>
-  <body>
-    <h1>KISANA研究所</h1><span><a href="https://github.com/Kisana528">github</a></span>
-    <div class="container">
-      <h2>ブロックチェーン</h2>
-      <ul>
-        <li><a href="./blockchain/BlockChain.html">block chainの模型</a></li>
-        <li><a href="./blockchain/key/PPS.html">PPS鍵作成</a></li>
-        <li><a href="./blockchain/key/ECDSA.html">ECDSA鍵作成</a></li>
-        <li><a href="./blockchain/key/OAEP.html">OAEP鍵作成</a></li>
-      </ul>
+</head>
+<body>
+    <header class="header">
+        <h1>KISANA研究所</h1>
+        <nav class="nav-links">
+            <a href="https://github.com/Kisana528" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <button class="theme-toggle-btn" id="theme-toggle">
+                <i class="fas fa-sun"></i>
+            </button>
+        </nav>
+        <div class="hamburger-menu" id="hamburger-menu">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <div class="grid-container">
+        <div class="container">
+            <div class="container-inner">
+                <h2>ブロックチェーン</h2>
+                <ul>
+                    <li><a href="./blockchain/BlockChain.html">block chainの模型</a></li>
+                    <li><a href="./blockchain/key/PPS.html">PPS鍵作成</a></li>
+                    <li><a href="./blockchain/key/ECDSA.html">ECDSA鍵作成</a></li>
+                    <li><a href="./blockchain/key/OAEP.html">OAEP鍵作成</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container">
+            <div class="container-inner">
+                <h2>デザイン</h2>
+                <ul>
+                    <li><a href="./design/Amiverse.html">Amiverse.netのレイアウト</a></li>
+                    <li><a href="./design/TWICE.html">TWICEのファンサイトを作りたかった残骸</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container">
+            <div class="container-inner">
+                <h2>AI</h2>
+                <ul>
+                    <li><a href="./deeplearning/index.html">ニューラルネットワーク</a></li>
+                    <li><a href="./snakegame/index.html">蛇ゲーム</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container">
+            <div class="container-inner">
+                <h2>ビジュアルプログラミング</h2>
+                <ul>
+                    <li><a href="./visualprogramming/index.html">テスト</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container">
+            <div class="container-inner">
+                <h2>お絵描き</h2>
+                <ul>
+                    <li><a href="./drawing/index.html">テスト</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container">
+            <div class="container-inner">
+                <h2>その他リンク</h2>
+                <ul>
+                    <li><a href="https://amiverse.net/" target="_blank" rel="noopener noreferrer">Amiverse.net</a></li>
+                    <li><a href="https://ivecolor.com/" target="_blank" rel="noopener noreferrer">IVECOLOR.com</a></li>
+                    <li><a href="https://kisana.me/" target="_blank" rel="noopener noreferrer">KISANA:ME</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
-    <div class="container">
-      <h2>デザイン</h2>
-      <ul>
-        <li><a href="./design/Amiverse.html">Amiverse.netのレイアウト</a></li>
-        <li><a href="./design/TWICE.html">TWICEのファンサイトを作りたかった残骸</a></li>
-      </ul>
-    </div>
-    <div class="container">
-      <h2>AI</h2>
-      <ul>
-        <li><a href="./deeplearning/index.html">ニューラルネットワーク</a></li>
-        <li><a href="./snakegame/index.html">蛇ゲーム</a></li>
-      </ul>
-    </div>
-    <div class="container">
-      <h2>ビジュアルプログラミング</h2>
-      <ul>
-        <li><a href="./visualprogramming/index.html">テスト</a></li>
-      </ul>
-    </div>
-    <div class="container">
-      <h2>お絵描き</h2>
-      <ul>
-        <li><a href="./drawing/index.html">テスト</a></li>
-      </ul>
-    </div>
-    <div class="container">
-      <h2>その他リンク</h2>
-      <ul>
-        <li><a href="https://amiverse.net/">Amiverse.net</a></li>
-        <li><a href="https://ivecolor.com/">IVECOLOR.com</a></li>
-        <li><a href="https://kisana.me/">KISANA:ME</a></li>
-      </ul>
-    </div>
-  </body>
+
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const themeIcon = themeToggle.querySelector('i');
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            if (body.classList.contains('light-mode')) {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            } else {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+        });
+
+        // Hamburger menu
+        const hamburger = document.getElementById('hamburger-menu');
+        const navLinks = document.querySelector('.nav-links');
+        const hamburgerIcon = hamburger.querySelector('i');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+             if (navLinks.classList.contains('active')) {
+                hamburgerIcon.classList.remove('fa-bars');
+                hamburgerIcon.classList.add('fa-times');
+            } else {
+                hamburgerIcon.classList.remove('fa-times');
+                hamburgerIcon.classList.add('fa-bars');
+            }
+        });
+
+        // Card tilt effect
+        const containers = document.querySelectorAll('.container');
+
+        containers.forEach(container => {
+            container.addEventListener('mousemove', (e) => {
+                const { left, top, width, height } = container.getBoundingClientRect();
+                const x = e.clientX - left - width / 2;
+                const y = e.clientY - top - height / 2;
+
+                const rotateX = (y / height) * -30;
+                const rotateY = (x / width) * 30;
+
+                container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+            });
+
+            container.addEventListener('mouseleave', () => {
+                container.style.transform = 'rotateX(0) rotateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
 </html>

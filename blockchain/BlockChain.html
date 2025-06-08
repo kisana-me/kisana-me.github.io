@@ -37,7 +37,7 @@
     <h1>BLOCK CHAIN</h1>
     <p>ブロックチェーンの試運転</p>
     <input type="number" id="level" placeholder="計算難易度">
-    <p>↑3くらいから激重なので注意</p>
+    <p>↑5くらいから激重なので注意</p>
     <p>計算の許可</p>
     <input type="checkbox" id="toggle" checked>
     <div class="container">
@@ -53,106 +53,6 @@
         </details>
       </div>
     </div>
-    <script>
-      //初期化
-      window.onload = () => {
-      document.getElementById('level').value = 4
-      document.getElementById('Number-1').value = 1
-      document.getElementById('Previous-1').value = '0000000000000000000000000000000000000000000000000000000000000000'
-      }
-      //計算許可トグル
-      let culcTgl = true
-      const toggle = document.getElementById('toggle');
-      toggle.addEventListener('change', (event) => {
-        if (event.target.checked) {
-          culcTgl = true
-        } else {
-          culcTgl = false
-        }
-      })
-      //ハッシュ計算
-      async function sha256(text){
-          const uint8  = new TextEncoder().encode(text)
-          const digest = await crypto.subtle.digest('SHA-256', uint8)
-          return Array.from(new Uint8Array(digest)).map(v => v.toString(16).padStart(2,'0')).join('')
-      }
-      /*async function sha256(str) {
-        // Convert string to ArrayBuffer
-        const buff = new Uint8Array([].map.call(str, (c) => c.charCodeAt(0))).buffer;
-        // Calculate digest
-        const digest = await crypto.subtle.digest('SHA-256', buff);
-        // Convert ArrayBuffer to hex string
-        // (from: https://stackoverflow.com/a/40031979)
-        return [].map.call(new Uint8Array(digest), x => ('00' + x.toString(16)).slice(-2)).join('');
-      }*/
-      //採掘ボタン押下
-      async function autoMine(e) {
-        const block = e.parentNode
-        const blockId = e.parentNode.id
-        //要素取得
-        const number = document.getElementById("Number-" + blockId)
-        const nonce = document.getElementById("Nonce-" + blockId)
-        const data = document.getElementById("Data-" + blockId)
-        const previous = document.getElementById("Previous-" + blockId)
-        const hash = document.getElementById("Hash-" + blockId)
-        const details = document.getElementById("Details-" + blockId)
-        const autoMinebutton = document.getElementById("AutoMineButton-" + blockId)
-        //ハッシュ
-        const level = document.getElementById("level").value
-        let ooo = ""
-        for (let i = 0; i < level; i++) ooo += "0"
-        let hashed = ''
-        autoMinebutton.disabled = true
-        let nowCulc = document.createElement('div')
-        nowCulc.setAttribute('class', 'nowCulc')
-        nowCulc.setAttribute('id', 'nowCulc-' + blockId)
-        block.querySelector('button:nth-child(6)').after(nowCulc)
-        const startTime = performance.now()
-        while (hashed.slice(0, level) !== ooo && culcTgl) {
-          nonce.value ++
-          const combined = number.value + nonce.value + data.value + previous.value
-          hashed = await sha256(combined)
-          hash.value = hashed
-        }
-        const endTime = performance.now()
-        autoMinebutton.disabled = false
-        document.getElementById('nowCulc-' + blockId).remove()
-        if (culcTgl) {
-        const culcTime = endTime - startTime
-        let pCulcTime = document.createElement('p')
-        pCulcTime.textContent = '採掘時間は' + culcTime + 'ミリ秒'
-        details.appendChild(pCulcTime)
-        //次のブロック生成
-        nextBlockId = Number(blockId) + 1
-        const exiNextBlock = document.getElementById(nextBlockId)
-        if (exiNextBlock) exiNextBlock.remove()
-        let nextBlock = document.getElementById('1').cloneNode(true)
-        nextBlock.id = nextBlockId
-        nextBlock.querySelector('input:nth-child(1)').id = "Number-" + nextBlockId
-        nextBlock.querySelector('input:nth-child(1)').value = nextBlockId
-        nextBlock.querySelector('input:nth-child(2)').id = "Nonce-" + nextBlockId
-        nextBlock.querySelector('input:nth-child(2)').value = ""
-        nextBlock.querySelector('textarea:nth-child(3)').id = "Data-" + nextBlockId
-        nextBlock.querySelector('textarea:nth-child(3)').value = ""
-        nextBlock.querySelector('input:nth-child(4)').id = "Previous-" + nextBlockId
-        nextBlock.querySelector('input:nth-child(4)').value = hashed
-        nextBlock.querySelector('input:nth-child(5)').id = "Hash-" + nextBlockId
-        nextBlock.querySelector('input:nth-child(5)').value = ""
-        nextBlock.querySelector('button').id = "AutoMineButton-" + nextBlockId
-        nextBlock.querySelector('details').id = "Details-" + nextBlockId
-        let detailsCrn = nextBlock.querySelector('details').cloneNode( false )
-        nextBlock.querySelector('details').parentNode.replaceChild( detailsCrn , nextBlock.querySelector('details') )
-        let delButton = document.createElement('button')
-        delButton.setAttribute('onclick', 'del(this)');
-        delButton.textContent = 'Delete削除'
-        nextBlock.appendChild(delButton)
-        block.insertAdjacentElement('afterend', nextBlock)
-        }
-      }
-      //削除ボタン押下
-      del = e =>{
-        e.parentNode.remove()
-      }
-    </script> 
+    <script src="src.js" defer></script>
   </body>
 </HTML>

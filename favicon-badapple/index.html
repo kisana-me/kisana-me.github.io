@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ファビコン Bad Apple!!</title>
+  <link rel="icon" type="image/png" href="src/ba_00000.png">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #animationContainer {
+      background-color: white;
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    #animationImage {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #eee;
+      background-color: #f9f9f9;
+    }
+
+    #controls {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    button#startButton {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    button#startButton:hover {
+      background-color: #45a049;
+    }
+
+    button#stopButton {
+      background-color: #f44336;
+      color: white;
+    }
+
+    button#stopButton:hover {
+      background-color: #da190b;
+    }
+
+    button#resetButton {
+      background-color: #008CBA;
+      color: white;
+    }
+
+    button#resetButton:hover {
+      background-color: #007bb5;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .fps-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .fps-control label {
+      font-weight: bold;
+    }
+
+    .fps-control input[type="range"] {
+      width: 150px;
+      cursor: grab;
+    }
+
+    #frameInfo {
+      margin-top: 15px;
+      font-size: 1.1em;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="animationContainer">
+    <h1>ファビコン Bad Apple!!</h1>
+    <a href="https://www.youtube.com/watch?v=FtutLA63Cp8">元動画</a>
+    <img id="animationImage" alt="アニメーション画像" src="">
+
+    <div class="fps-control">
+      <label for="fpsSlider">FPS:</label>
+      <input type="range" id="fpsSlider" min="1" max="30" value="30">
+      <span id="fpsValue">10</span>
+      <span>fps</span>
+    </div>
+
+    <div id="controls">
+      <button id="startButton">再生</button>
+      <button id="stopButton" disabled>停止</button>
+      <button id="resetButton">リセット</button>
+    </div>
+    <p id="frameInfo">フレーム: - / -</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
